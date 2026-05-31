@@ -20,10 +20,10 @@ type event struct {
 	index  int
 }
 
-const (
-	countdown    = 3 * time.Second  // 打鍵開始前の「よーいドン」の助走
-	matchTimeout = 10 * time.Minute // 放置対策。これを超える試合は存在させない
-)
+// countdown は打鍵開始前の「よーいドン」の助走。テストで 0 に差し替えられるよう var。
+var countdown = 3 * time.Second
+
+const matchTimeout = 10 * time.Minute // 放置対策。これを超える試合は存在させない
 
 // Room は1対1の1試合。自身の goroutine (run) で動き、それが下記の試合状態の
 // 唯一の所有者となる（ここでもロックなし）。進捗の申告はここで検証され、
@@ -37,6 +37,10 @@ type Room struct {
 
 	progress [2]int
 	finished bool
+
+	// CPU対戦のときだけ設定される。bot は players の一方でもある。
+	bot     *Player
+	botProf botProfile
 
 	events chan event
 	done   chan struct{}
@@ -52,6 +56,14 @@ func newRoom(h *Hub, a, b *Player) *Room {
 		events:  make(chan event, 64),
 		done:    make(chan struct{}),
 	}
+}
+
+// newRoomVsBot は人間 human と CPU bot の1試合を作る。human が players[0]。
+func newRoomVsBot(h *Hub, human, bot *Player, prof botProfile) *Room {
+	r := newRoom(h, human, bot)
+	r.bot = bot
+	r.botProf = prof
+	return r
 }
 
 func (r *Room) other(p *Player) *Player {
@@ -85,6 +97,11 @@ func (r *Room) run() {
 			StartAt:  startAt.UnixMilli(),
 			Total:    r.total,
 		})
+	}
+
+	// CPU対戦なら、カウントダウン明けから Bot が自走する。
+	if r.bot != nil {
+		go r.runBot(r.bot, r.botProf, startAt, r.total)
 	}
 
 	timeout := time.NewTimer(matchTimeout)

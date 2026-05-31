@@ -82,9 +82,12 @@ func (h *Hub) Run() {
 			h.handleInbound(in)
 
 		case r := <-h.roomDone:
+			// 試合が終わったプレイヤーをロビーへ戻す（接続は維持し、再戦を可能にする）。
+			// 切断済みのプレイヤーは handleLeave で既に map から消えているため触れない。
+			// Bot は最初から map に居ない。
 			for _, p := range r.players {
 				if h.rooms[p] == r {
-					delete(h.rooms, p)
+					h.rooms[p] = nil
 				}
 			}
 		}
@@ -136,7 +139,19 @@ func (h *Hub) handleInbound(in inbound) {
 	var jm protocol.JoinMsg
 	_ = json.Unmarshal(in.data, &jm)
 	p.name = sanitizeName(jm.Name)
+	if jm.Mode == protocol.ModeCPU {
+		h.startCPUMatch(p, parseDifficulty(jm.Difficulty))
+		return
+	}
 	h.matchmake(p)
+}
+
+// startCPUMatch は待機キューを介さず、その場で人間 vs CPU の試合を始める。
+func (h *Hub) startCPUMatch(p *Player, d Difficulty) {
+	bot := newBot(h.nextID(), h, d)
+	r := newRoomVsBot(h, p, bot, profileFor(d))
+	h.rooms[p] = r // Bot は接続管理対象外なので map に入れない
+	go r.run()
 }
 
 func (h *Hub) matchmake(p *Player) {

@@ -1,15 +1,28 @@
-import { createSignal, onCleanup, onMount, Show, For, type Component } from "solid-js";
-import type { Quote, ServerMsg } from "./protocol";
+import { batch, createSignal, onCleanup, onMount, Show, For, type Component } from "solid-js";
+import type { Quote, ServerMsg, JoinMsg, Difficulty } from "./protocol";
 import { GameSocket } from "./ws";
 import { TypingSession } from "./romaji";
 
 type Screen = "lobby" | "waiting" | "playing" | "finished";
 type Result = "win" | "lose" | "draw" | "left";
 
+// 弱い順 → 強い順。サーバーの難易度キーと一致させる。
+const DIFFICULTIES: { key: Difficulty; label: string }[] = [
+  { key: "nyuumon", label: "入門" },
+  { key: "shoshinsha", label: "初心者" },
+  { key: "yasashii", label: "やさしい" },
+  { key: "futsuu", label: "ふつう" },
+  { key: "joukyuu", label: "上級" },
+  { key: "tatsujin", label: "達人" },
+  { key: "oni", label: "鬼" },
+];
+
 const App: Component = () => {
   const [screen, setScreen] = createSignal<Screen>("lobby");
   const [name, setName] = createSignal("");
   const [connError, setConnError] = createSignal("");
+  const [mode, setMode] = createSignal<"human" | "cpu">("human");
+  const [difficulty, setDifficulty] = createSignal<Difficulty>("futsuu");
 
   const [quote, setQuote] = createSignal<Quote | null>(null);
   const [opponent, setOpponent] = createSignal("");
@@ -19,7 +32,7 @@ const App: Component = () => {
 
   const [myIndex, setMyIndex] = createSignal(0);
   const [oppIndex, setOppIndex] = createSignal(0);
-  const [status, setStatus] = createSignal<("done" | "active" | "todo")[]>([]);
+  const [status, setStatus] = createSignal<("done" | "typing" | "active" | "todo")[]>([]);
   const [hint, setHint] = createSignal("");
 
   const [result, setResult] = createSignal<Result | null>(null);
@@ -34,9 +47,12 @@ const App: Component = () => {
 
   function refreshRender() {
     if (!session) return;
-    setStatus(session.renderStatus());
-    setHint(session.romajiHint());
-    setMyIndex(session.index);
+    // 1打鍵あたりの signal 更新を1回の再描画にまとめる。
+    batch(() => {
+      setStatus(session!.renderStatus());
+      setHint(session!.romajiHint());
+      setMyIndex(session!.index);
+    });
   }
 
   function computeStats(): { wpm: number; acc: number } {
@@ -95,16 +111,33 @@ const App: Component = () => {
     }
   }
 
-  function join(e: Event) {
-    e.preventDefault();
+  function joinPayload(): JoinMsg {
+    return mode() === "cpu"
+      ? { type: "join", name: name().trim(), mode: "cpu", difficulty: difficulty() }
+      : { type: "join", name: name().trim() };
+  }
+
+  function connect() {
     setConnError("");
     socket = new GameSocket({
-      onOpen: () => socket?.send({ type: "join", name: name().trim() }),
+      onOpen: () => socket?.send(joinPayload()),
       onMessage: handleMessage,
       onClose: () => {
         if (screen() !== "finished") setConnError("接続が切れました");
       },
     });
+  }
+
+  function startHuman(e: Event) {
+    e.preventDefault();
+    setMode("human");
+    connect();
+  }
+
+  function startCPU(d: Difficulty) {
+    setMode("cpu");
+    setDifficulty(d);
+    connect();
   }
 
   function onKeyDown(e: KeyboardEvent) {
@@ -128,7 +161,8 @@ const App: Component = () => {
     setMyIndex(0);
     setOppIndex(0);
     setResult(null);
-    socket?.send({ type: "join", name: name().trim() });
+    socket?.send(joinPayload());
+    // 画面遷移は server からの match_start / waiting に任せる。
     setScreen("waiting");
   }
 
@@ -146,8 +180,8 @@ const App: Component = () => {
       <h1 class="title">文豪タイピング対戦</h1>
 
       <Show when={screen() === "lobby"}>
-        <form class="panel" onSubmit={join}>
-          <p class="lead">名前を入れて対戦相手を待ちます。</p>
+        <form class="panel" onSubmit={startHuman}>
+          <p class="lead">名前を入れて対戦しよう。</p>
           <input
             class="name-input"
             placeholder="名前"
@@ -156,7 +190,21 @@ const App: Component = () => {
             onInput={(e) => setName(e.currentTarget.value)}
             autofocus
           />
-          <button class="btn" type="submit">対戦する</button>
+          <button class="btn" type="submit">人と対戦する</button>
+
+          <div class="divider">または</div>
+
+          <p class="lead cpu-label">CPUと対戦（左ほど弱い）</p>
+          <div class="cpu-buttons">
+            <For each={DIFFICULTIES}>
+              {(d) => (
+                <button type="button" class="btn btn-ghost" onClick={() => startCPU(d.key)}>
+                  {d.label}
+                </button>
+              )}
+            </For>
+          </div>
+
           <Show when={connError()}>
             <p class="error">{connError()}</p>
           </Show>

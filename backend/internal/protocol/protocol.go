@@ -30,7 +30,17 @@ type Envelope struct {
 type JoinMsg struct {
 	Type string `json:"type"`
 	Name string `json:"name"`
+	// Mode は "human"（既定・対人マッチング）か "cpu"（即CPU対戦）。
+	Mode string `json:"mode,omitempty"`
+	// Difficulty は Mode=="cpu" のときの強さ "easy" | "normal" | "hard"。
+	Difficulty string `json:"difficulty,omitempty"`
 }
+
+// 対戦モード。
+const (
+	ModeHuman = "human"
+	ModeCPU   = "cpu"
+)
 
 // ProgressMsg は名文の読みを何文字（rune）打ち終えたかを報告する。サーバーは
 // これを「申告」として扱い、検証する（チート対策）。

@@ -4,7 +4,21 @@
 // 手作業で同期する（将来は Go の構造体から生成したい）。
 
 // ---- クライアント -> サーバー ----
-export type JoinMsg = { type: "join"; name: string };
+// CPU の強さ（7段階）。サーバーの内部キーと一致させること。
+export type Difficulty =
+  | "oni"
+  | "tatsujin"
+  | "joukyuu"
+  | "futsuu"
+  | "yasashii"
+  | "shoshinsha"
+  | "nyuumon";
+export type JoinMsg = {
+  type: "join";
+  name: string;
+  mode?: "human" | "cpu";
+  difficulty?: Difficulty;
+};
 export type ProgressMsg = { type: "progress"; index: number };
 export type FinishMsg = { type: "finish" };
 export type ClientMsg = JoinMsg | ProgressMsg | FinishMsg;

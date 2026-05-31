@@ -1,0 +1,40 @@
+# ---- secrets / env ----
+.env
+.env.*
+# example は秘匿値を含まないのでコミットする
+!.env.example
+*.pem
+
+# ---- Terraform ----
+# state は絶対にコミットしない
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.tfstate.lock.info
+# 秘匿値入りの変数ファイル（example はコミットする）
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+crash.log
+crash.*.log
+# .terraform.lock.hcl は意図的にコミットする（除外しない）
+
+# ---- Go (backend) ----
+/backend/bin/
+/backend/tmp/
+*.test
+*.out
+
+# ---- Solid.js / Vite (frontend) ----
+/frontend/node_modules/
+/frontend/dist/
+*.tsbuildinfo
+
+# ---- embed するビルド成果物 ----
+# フロントは Go バイナリの embed ディレクトリにビルドされる生成物でソースではない。
+# web/placeholder/（コミット済み）があればバイナリは常にビルドできる。
+/backend/web/dist/
+
+# ---- misc ----
+.DS_Store
+*.log

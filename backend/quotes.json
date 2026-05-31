@@ -1,0 +1,44 @@
+[
+  {
+    "id": "soseki-wagahai",
+    "author": "夏目漱石",
+    "title": "吾輩は猫である",
+    "text": "吾輩は猫である。名前はまだ無い。",
+    "reading": "わがはいはねこであるなまえはまだない"
+  },
+  {
+    "id": "kawabata-yukiguni",
+    "author": "川端康成",
+    "title": "雪国",
+    "text": "国境の長いトンネルを抜けると雪国であった。",
+    "reading": "くにざかいのながいとんねるをぬけるとゆきぐにであった"
+  },
+  {
+    "id": "dazai-merosu",
+    "author": "太宰治",
+    "title": "走れメロス",
+    "text": "メロスは激怒した。",
+    "reading": "めろすはげきどした"
+  },
+  {
+    "id": "akutagawa-rashomon",
+    "author": "芥川龍之介",
+    "title": "羅生門",
+    "text": "ある日の暮方の事である。",
+    "reading": "あるひのくれがたのことである"
+  },
+  {
+    "id": "miyazawa-amenimo",
+    "author": "宮沢賢治",
+    "title": "雨ニモマケズ",
+    "text": "雨ニモマケズ風ニモマケズ",
+    "reading": "あめにもまけずかぜにもまけず"
+  },
+  {
+    "id": "akutagawa-kumonoito",
+    "author": "芥川龍之介",
+    "title": "蜘蛛の糸",
+    "text": "お釈迦様は極楽の蓮池のふちを独りで歩いていらっしゃいました。",
+    "reading": "おしゃかさまはごくらくのはすいけのふちをひとりであるいていらっしゃいました"
+  }
+]

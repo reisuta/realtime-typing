@@ -1,0 +1,235 @@
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --fg: #e2e8f0;
+  --muted: #94a3b8;
+  --me: #38bdf8;
+  --opp: #f472b6;
+  --done: #4ade80;
+  --active: #facc15;
+  --accent: #38bdf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+.app {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  min-height: 100vh;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.6rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 2rem;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.lead {
+  color: var(--muted);
+  margin: 0;
+}
+
+.name-input {
+  width: 100%;
+  max-width: 18rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: var(--fg);
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn {
+  padding: 0.7rem 1.8rem;
+  font-size: 1rem;
+  border-radius: 0.6rem;
+  border: none;
+  background: var(--accent);
+  color: #042f3f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:hover {
+  filter: brightness(1.08);
+}
+
+.error {
+  color: #f87171;
+  margin: 0;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid #334155;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- 対戦画面 ---- */
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.meta {
+  color: var(--muted);
+  text-align: center;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bar-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar {
+  height: 0.9rem;
+  background: #0b1220;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width 0.08s linear;
+}
+
+.fill.me {
+  background: var(--me);
+}
+
+.fill.opp {
+  background: var(--opp);
+}
+
+.quote-text {
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.reading {
+  text-align: center;
+  font-size: 1.9rem;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+
+.k {
+  color: #475569;
+  transition: color 0.05s linear;
+}
+
+.k.done {
+  color: var(--done);
+}
+
+.k.active {
+  color: var(--active);
+  border-bottom: 3px solid var(--active);
+}
+
+.hint {
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--muted);
+  font-size: 1.1rem;
+  min-height: 1.4rem;
+  letter-spacing: 0.08em;
+}
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--accent);
+  background: rgba(15, 23, 42, 0.72);
+  border-radius: 1rem;
+}
+
+/* ---- 結果画面 ---- */
+.result {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.result.win {
+  color: var(--done);
+}
+
+.result.lose {
+  color: #f87171;
+}
+
+.result.left,
+.result.draw {
+  color: var(--muted);
+}
+
+.stats {
+  color: var(--muted);
+  font-size: 1.1rem;
+  margin: 0;
+}

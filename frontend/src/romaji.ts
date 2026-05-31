@@ -223,13 +223,18 @@ export class TypingSession {
     return "ok";
   }
 
-  /** 読み文字列の rune ごとの表示ステータス。 */
-  renderStatus(): ("done" | "active" | "todo")[] {
+  /** 読み文字列の rune ごとの表示ステータス。
+   *  "typing" は、確定前だが既に打鍵が始まっている現在の文字（例: 「し」に対して
+   *  s まで打った状態）。1打ごとの反応を出すために done とは別に区別する。 */
+  renderStatus(): ("done" | "typing" | "active" | "todo")[] {
     const runes = [...this.reading];
     const tok = this.tokens[this.ti];
+    const typing = this.buffer.length > 0;
     return runes.map((_, i) => {
       if (i < this.completed) return "done";
-      if (tok && i >= tok.startRune && i < tok.startRune + tok.kanaLen) return "active";
+      if (tok && i >= tok.startRune && i < tok.startRune + tok.kanaLen) {
+        return typing ? "typing" : "active";
+      }
       return "todo";
     });
   }

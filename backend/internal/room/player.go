@@ -25,6 +25,7 @@ type Player struct {
 	conn    *websocket.Conn
 	hub     *Hub
 	onClose func()
+	isBot   bool // true の場合、実接続を持たない CPU プレイヤー
 
 	out  chan []byte
 	quit chan struct{}
@@ -41,12 +42,27 @@ func newPlayer(id string, conn *websocket.Conn, hub *Hub) *Player {
 	}
 }
 
+// newBot は実接続を持たない CPU プレイヤーを作る。送受信ポンプは起動せず、
+// 進捗は runBot が events チャネルへ直接流す。
+func newBot(id string, hub *Hub, d Difficulty) *Player {
+	return &Player{
+		id:    id,
+		hub:   hub,
+		isBot: true,
+		name:  botName(d),
+		out:   make(chan []byte, sendBuffer),
+		quit:  make(chan struct{}),
+	}
+}
+
 // Close は冪等。接続を破棄し、送受信両ポンプに終了を通知する。onClose
 // （接続数の計上）はちょうど一度だけ実行される。
 func (p *Player) Close() {
 	p.once.Do(func() {
 		close(p.quit)
-		_ = p.conn.Close()
+		if p.conn != nil { // Bot は実接続を持たない
+			_ = p.conn.Close()
+		}
 		if p.onClose != nil {
 			p.onClose()
 		}
@@ -56,6 +72,9 @@ func (p *Player) Close() {
 // trySend は呼び出し元（Hub/Room の goroutine）を決してブロックしない。追従でき
 // ないほど遅い受信者は、ゲームループを止めさせる代わりに切断する。
 func (p *Player) trySend(b []byte) {
+	if p.isBot {
+		return // Bot は自律動作なので相手の進捗等を受け取る必要がない
+	}
 	select {
 	case p.out <- b:
 	case <-p.quit:
